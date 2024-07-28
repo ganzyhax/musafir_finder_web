@@ -63,6 +63,8 @@ class _MainScreenState extends State<MainScreen> {
           print('Response body: ${response.body}');
         }
       } catch (e) {
+        _locationMessage = "Press the button to get your location.";
+        setState(() {});
         const snackBar = SnackBar(
           content: Text('Please try again! يرجى المحاولة مرة أخرى!'),
         );
