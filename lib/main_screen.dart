@@ -1,7 +1,6 @@
-import 'dart:developer';
-
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,34 +10,73 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  String _locationMessage = "Press the button to get your location.";
+  var name;
+
+  var hotel;
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    print(Uri.base.queryParameters['randomNumber'].toString());
+    name = Uri.base.queryParameters['name']?.toString();
+    hotel = Uri.base.queryParameters['hotel']?.toString();
   }
 
-  Future<List> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return [];
-    }
+  Future<void> _getCurrentLocation() async {
+    _locationMessage = 'Please wait';
+    setState(() {});
+    if (html.window.navigator.geolocation != null) {
+      try {
+        final position =
+            await html.window.navigator.geolocation.getCurrentPosition();
+        final lat = position.coords!.latitude;
+        final lon = position.coords!.longitude;
+        setState(() {
+          _locationMessage = 'Latitude: $lat, Longitude: $lon';
+        });
+        String googleMap = 'https://maps.google.com/maps?q=' +
+            lat.toString() +
+            ',' +
+            lon.toString() +
+            '&hl=es&z=12&amp;output=embed';
+        final String botToken =
+            '7212364497:AAEUeP9_-ueYAWYlfZQIVHzG2lemipJyISc';
+        final String chatId = '-1002211991078';
+        final String message =
+            '👤Имя:${name}\n📍: Потерялся здесь  ${googleMap}';
+        final url = 'https://api.telegram.org/bot$botToken/sendMessage';
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: {
+            'chat_id': chatId,
+            'text': message,
+          },
+        );
 
-    // Check location permissions
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission != LocationPermission.whileInUse &&
-          permission != LocationPermission.always) {
-        return [];
+        if (response.statusCode == 200) {
+          print('Message sent successfully');
+        } else {
+          print('Failed to send message: ${response.statusCode}');
+          print('Response body: ${response.body}');
+        }
+      } catch (e) {
+        const snackBar = SnackBar(
+          content: Text('Please try again! يرجى المحاولة مرة أخرى!'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
+    } else {
+      setState(() {
+        const snackBar = SnackBar(
+          content:
+              Text('Please try with other phone!   يرجى المحاولة مع هاتف آخر!'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      });
     }
-
-    // Get current position
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    return [position.longitude, position.latitude];
   }
 
   @override
@@ -107,9 +145,7 @@ class _MainScreenState extends State<MainScreen> {
                   color: Colors.black,
                 ),
               ),
-              SizedBox(
-                height: 15,
-              ),
+              SizedBox(height: 15),
               Text(
                 'معلومات الحاج:',
                 style: TextStyle(
@@ -156,12 +192,10 @@ class _MainScreenState extends State<MainScreen> {
               SizedBox(height: 10),
               Divider(thickness: 1),
               SizedBox(height: 10),
-              // Hadji Information in English
               Text('Name: Alikhan Alaev', style: TextStyle(fontSize: 16)),
               Text('Hotel: Tawhid', style: TextStyle(fontSize: 16)),
               Text('Country: Kazakhstan', style: TextStyle(fontSize: 16)),
               SizedBox(height: 30),
-
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -174,10 +208,7 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         padding: EdgeInsets.all(15),
                       ),
-                      onPressed: () {
-                        var location = getCurrentTag();
-                        log(location.toString());
-                      },
+                      onPressed: _getCurrentLocation,
                       child: Text(
                         'Send geolocation',
                         style: TextStyle(
@@ -197,10 +228,7 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       padding: EdgeInsets.all(15),
                     ),
-                    onPressed: () {
-                      var location = getCurrentTag();
-                      log(location.toString());
-                    },
+                    onPressed: _getCurrentLocation,
                     child: Text(
                       'أرسل الموقع الجغرافي',
                       style: TextStyle(
@@ -211,6 +239,16 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: 20),
+              Text(
+                _locationMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
               ),
             ],
           ),
