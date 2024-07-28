@@ -58,9 +58,13 @@ class _MainScreenState extends State<MainScreen> {
 
         if (response.statusCode == 200) {
           print('Message sent successfully');
+          const snackBar = SnackBar(content: Text('Thank you! شكراً!'));
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         } else {
-          print('Failed to send message: ${response.statusCode}');
-          print('Response body: ${response.body}');
+          const snackBar = SnackBar(
+            content: Text('Please try again! يرجى المحاولة مرة أخرى!'),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       } catch (e) {
         _locationMessage = "Press the button to get your location.";
@@ -159,8 +163,9 @@ class _MainScreenState extends State<MainScreen> {
               SizedBox(height: 10),
               Divider(thickness: 1),
               SizedBox(height: 10),
-              Text('الاسم: عليخان ألايف', style: TextStyle(fontSize: 16)),
-              Text('الفندق: توحيد', style: TextStyle(fontSize: 16)),
+              Text(name.toString() + 'الاسم: ', style: TextStyle(fontSize: 16)),
+              Text(hotel.toString() + 'الفندق: توحيد',
+                  style: TextStyle(fontSize: 16)),
               Text('البلد: كازاخستان', style: TextStyle(fontSize: 16)),
               SizedBox(height: 30),
               Text(
@@ -194,8 +199,8 @@ class _MainScreenState extends State<MainScreen> {
               SizedBox(height: 10),
               Divider(thickness: 1),
               SizedBox(height: 10),
-              Text('Name: Alikhan Alaev', style: TextStyle(fontSize: 16)),
-              Text('Hotel: Tawhid', style: TextStyle(fontSize: 16)),
+              Text('Name: ' + name, style: TextStyle(fontSize: 16)),
+              Text('Hotel: Tawhid' + hotel, style: TextStyle(fontSize: 16)),
               Text('Country: Kazakhstan', style: TextStyle(fontSize: 16)),
               SizedBox(height: 30),
               Column(
