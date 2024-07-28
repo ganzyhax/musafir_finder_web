@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -14,6 +16,29 @@ class _MainScreenState extends State<MainScreen> {
     // TODO: implement initState
     super.initState();
     print(Uri.base.queryParameters['randomNumber'].toString());
+  }
+
+  Future<List> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return [];
+    }
+
+    // Check location permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission != LocationPermission.whileInUse &&
+          permission != LocationPermission.always) {
+        return [];
+      }
+    }
+
+    // Get current position
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    return [position.longitude, position.latitude];
   }
 
   @override
@@ -150,7 +175,8 @@ class _MainScreenState extends State<MainScreen> {
                         padding: EdgeInsets.all(15),
                       ),
                       onPressed: () {
-                        // Your action to send geolocation
+                        var location = getCurrentTag();
+                        log(location.toString());
                       },
                       child: Text(
                         'Send geolocation',
@@ -172,29 +198,8 @@ class _MainScreenState extends State<MainScreen> {
                       padding: EdgeInsets.all(15),
                     ),
                     onPressed: () {
-                      Future<void> _getCurrentLocation() async {
-                        bool serviceEnabled =
-                            await Geolocator.isLocationServiceEnabled();
-                        if (!serviceEnabled) {
-                          return;
-                        }
-
-                        // Check location permissions
-                        LocationPermission permission =
-                            await Geolocator.checkPermission();
-                        if (permission == LocationPermission.denied) {
-                          permission = await Geolocator.requestPermission();
-                          if (permission != LocationPermission.whileInUse &&
-                              permission != LocationPermission.always) {
-                            return;
-                          }
-                        }
-
-                        // Get current position
-                        Position position = await Geolocator.getCurrentPosition(
-                          desiredAccuracy: LocationAccuracy.high,
-                        );
-                      }
+                      var location = getCurrentTag();
+                      log(location.toString());
                     },
                     child: Text(
                       'أرسل الموقع الجغرافي',
